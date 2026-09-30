@@ -407,13 +407,8 @@ export default function App() {
     }
   };
 
-  const handleQuickLogin = (role: 'admin' | 'user') => {
-    if (role === 'admin') {
-      setPasswordInput('adminalwa');
-      setUserRole('admin');
-      localStorage.setItem('piket_auth_role', 'admin');
-    } else {
-      setPasswordInput('piket');
+  const handleQuickLogin = (role: 'user') => {
+    if (role === 'user') {
       setUserRole('user');
       localStorage.setItem('piket_auth_role', 'user');
     }
@@ -646,34 +641,24 @@ export default function App() {
             }`}
           >
             <span className="text-[11px] text-slate-400 block">
-              Pilih Peran Langsung:
+              Akses Langsung Piket:
             </span>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('user')}
-                className={`py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors ${
-                  isLightMode
-                    ? 'bg-slate-50 hover:bg-slate-100 border-slate-300 text-slate-800'
-                    : 'bg-slate-800 hover:bg-slate-750 border-slate-700 text-slate-200'
-                }`}
-              >
-                <User className="w-3.5 h-3.5 text-blue-500" />
-                <span>Piket (User)</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('admin')}
-                className={`py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors ${
-                  isLightMode
-                    ? 'bg-slate-50 hover:bg-slate-100 border-slate-300 text-slate-800'
-                    : 'bg-slate-800 hover:bg-slate-750 border-slate-700 text-slate-200'
-                }`}
-              >
-                <Shield className="w-3.5 h-3.5 text-amber-500" />
-                <span>Admin</span>
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => handleQuickLogin('user')}
+              className={`w-full py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors ${
+                isLightMode
+                  ? 'bg-slate-50 hover:bg-slate-100 border-slate-300 text-slate-800'
+                  : 'bg-slate-800 hover:bg-slate-750 border-slate-700 text-slate-200'
+              }`}
+            >
+              <User className="w-3.5 h-3.5 text-blue-500" />
+              <span>Piket (User)</span>
+            </button>
+            <p className="text-[10px] text-slate-500 flex items-center justify-center gap-1 pt-0.5">
+              <Shield className="w-3 h-3 text-amber-500" />
+              <span>Admin wajib input sandi secara manual</span>
+            </p>
 
             {/* Install APK Piket Button on Login Screen */}
             <div className="pt-1">
