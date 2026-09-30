@@ -1,0 +1,8 @@
+{
+  "name": " Piket SPM Al Ihsan Wat Taqwa",
+  "description": "Sistem Absensi Piket SPM Al Ihsan Wat Taqwa dengan matriks jadwal KBM desktop jam atas ke bawah, urutan kelas terbesar ke terkecil, dan dashboard statistik mingguan recharts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

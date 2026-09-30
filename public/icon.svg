@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a8a"/>
+      <stop offset="50%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="btn" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="50%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="16" stdDeviation="12" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  
+  <!-- Outer border ring -->
+  <rect x="12" y="12" width="488" height="488" rx="100" fill="none" stroke="#3b82f6" stroke-width="4" stroke-opacity="0.3"/>
+
+  <!-- Keyboard Keycap Graphic (Embossed 3D) -->
+  <g filter="url(#shadow)">
+    <!-- Base Bevel 3D Shadow -->
+    <rect x="76" y="96" width="360" height="320" rx="44" fill="#0f2b5c"/>
+    <!-- Keycap Face -->
+    <rect x="76" y="86" width="360" height="300" rx="44" fill="url(#btn)" stroke="#60a5fa" stroke-width="3" stroke-opacity="0.5"/>
+    <!-- Gloss Highlight Top -->
+    <rect x="96" y="96" width="320" height="6" rx="3" fill="#ffffff" fill-opacity="0.4"/>
+  </g>
+
+  <!-- Iconography inside Keycap: School Crest / Checkmark -->
+  <!-- SPM Crest Crown -->
+  <path d="M 216 160 L 256 130 L 296 160 L 280 200 L 232 200 Z" fill="url(#gold)"/>
+  <circle cx="256" cy="148" r="8" fill="#ffffff"/>
+
+  <!-- Large Bold Lettering: PIKET -->
+  <text x="256" y="270" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="58" fill="#ffffff" text-anchor="middle" letter-spacing="4">
+    PIKET
+  </text>
+
+  <!-- Subtitle: SPM AL IHSAN -->
+  <text x="256" y="315" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="22" fill="#93c5fd" text-anchor="middle" letter-spacing="2">
+    SPM AL IHSAN
+  </text>
+
+  <!-- Small 3 Status Dots underneath -->
+  <circle cx="206" cy="350" r="10" fill="#3b82f6"/>
+  <circle cx="256" cy="350" r="10" fill="#10b981"/>
+  <circle cx="306" cy="350" r="10" fill="#f59e0b"/>
+</svg>
