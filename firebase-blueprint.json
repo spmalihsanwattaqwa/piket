@@ -1,0 +1,82 @@
+{
+  "entities": {
+    "AttendanceRecord": {
+      "title": "AttendanceRecord",
+      "description": "Catatan absensi KBM untuk jadwal dan tanggal tertentu",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "date": { "type": "string" },
+        "scheduleId": { "type": "string" },
+        "teacher": { "type": "string" },
+        "subject": { "type": "string" },
+        "className": { "type": "string" },
+        "day": { "type": "string" },
+        "period": { "type": "number" },
+        "status": { "type": "string", "enum": ["belum", "hadir", "tidak_hadir"] },
+        "reason": { "type": "string" },
+        "substituteTeacher": { "type": "string" },
+        "note": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "piketName": { "type": "string" }
+      },
+      "required": ["id", "date", "scheduleId", "teacher", "subject", "className", "day", "period", "status"]
+    },
+    "LockedEvent": {
+      "title": "LockedEvent",
+      "description": "Penguncian kegiatan sekolah yang menonaktifkan KBM",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "activity": { "type": "string" },
+        "date": { "type": "string" },
+        "targetClasses": { "type": "string", "enum": ["semua", "banin", "banat"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "activity", "date", "targetClasses"]
+    },
+    "PiketDutyRecord": {
+      "title": "PiketDutyRecord",
+      "description": "Jadwal tugas guru piket harian",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "teacherName": { "type": "string" },
+        "startTime": { "type": "string" },
+        "endTime": { "type": "string" },
+        "day": { "type": "string" },
+        "note": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "teacherName", "startTime", "endTime", "day"]
+    },
+    "AppSettings": {
+      "title": "AppSettings",
+      "description": "Pengaturan jam pelajaran dan konfigurasi KBM",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id"]
+    }
+  },
+  "firestore": {
+    "/attendance_records/{recordId}": {
+      "schema": "AttendanceRecord",
+      "description": "Menyimpan data kehadiran KBM per tanggal dan jadwal"
+    },
+    "/locked_events/{eventId}": {
+      "schema": "LockedEvent",
+      "description": "Menyimpan agenda kunci kegiatan KBM"
+    },
+    "/piket_duties/{dutyId}": {
+      "schema": "PiketDutyRecord",
+      "description": "Menyimpan daftar tugas guru piket aktif"
+    },
+    "/app_settings/{settingId}": {
+      "schema": "AppSettings",
+      "description": "Menyimpan pengaturan jam KBM dan konfigurasi sekolah yang tersinkron otomatis antar HP dan PC"
+    }
+  }
+}

@@ -68,4 +68,24 @@ export interface PiketDutyRecord {
   createdAt: string;
 }
 
+export type BellPresetId = 'reguler' | 'jumat' | 'ujian' | string;
+
+export type BellSoundType = 'westminster' | 'dingdong' | 'digital' | 'marimba' | 'custom';
+
+export interface BellSchedulePreset {
+  id: BellPresetId;
+  name: string;
+  description: string;
+  periods: PeriodConfig[];
+}
+
+export interface BellSettingsConfig {
+  activePresetId: 'auto' | 'reguler' | 'jumat' | 'ujian' | string;
+  autoFridaySwitch: boolean;
+  soundType?: BellSoundType;
+  customSoundName?: string;
+  presets: Record<string, BellSchedulePreset>;
+}
+
+
 

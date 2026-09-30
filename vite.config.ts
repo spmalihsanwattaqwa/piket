@@ -1,6 +1,7 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import fs from 'fs';
 import {defineConfig} from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
@@ -10,8 +11,111 @@ export default defineConfig(() => {
       react(),
       tailwindcss(),
       {
-        name: 'google-sheet-proxy',
+        name: 'shared-data-and-sheet-proxy',
         configureServer(server) {
+          const DB_FILE = path.resolve(__dirname, 'data', 'piket_store.json');
+          const ensureDb = () => {
+            const dir = path.dirname(DB_FILE);
+            if (!fs.existsSync(dir)) {
+              fs.mkdirSync(dir, { recursive: true });
+            }
+            if (!fs.existsSync(DB_FILE)) {
+              fs.writeFileSync(
+                DB_FILE,
+                JSON.stringify(
+                  {
+                    periods: null,
+                    lockedEvents: [],
+                    piketDuties: [],
+                    adminPassword: 'adminalwa',
+                    attendance: {},
+                  },
+                  null,
+                  2
+                )
+              );
+            }
+            try {
+              return JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
+            } catch {
+              return {
+                periods: null,
+                lockedEvents: [],
+                piketDuties: [],
+                adminPassword: 'adminalwa',
+                attendance: {},
+              };
+            }
+          };
+
+          // 1. Shared Database API (/api/state) to synchronize across all devices
+          server.middlewares.use('/api/state', (req, res) => {
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+
+            if (req.method === 'GET') {
+              const current = ensureDb();
+              res.statusCode = 200;
+              res.end(JSON.stringify({ success: true, ...current }));
+              return;
+            }
+
+            if (req.method === 'POST') {
+              let bodyStr = '';
+              req.on('data', (chunk) => {
+                bodyStr += chunk;
+              });
+              req.on('end', () => {
+                try {
+                  const payload = JSON.parse(bodyStr || '{}');
+                  const current = ensureDb();
+
+                  if (payload.attendanceByDate) {
+                    current.attendance = current.attendance || {};
+                    for (const [date, recs] of Object.entries(payload.attendanceByDate)) {
+                      current.attendance[date] = {
+                        ...(current.attendance[date] || {}),
+                        ...(recs as Record<string, unknown>),
+                      };
+                    }
+                  }
+
+                  if (payload.periods !== undefined) current.periods = payload.periods;
+                  if (payload.lockedEvents !== undefined) current.lockedEvents = payload.lockedEvents;
+                  if (payload.piketDuties !== undefined) current.piketDuties = payload.piketDuties;
+                  if (payload.adminPassword !== undefined) current.adminPassword = payload.adminPassword;
+
+                  fs.writeFileSync(DB_FILE, JSON.stringify(current, null, 2));
+
+                  res.statusCode = 200;
+                  res.end(JSON.stringify({ success: true, ...current }));
+
+                  // Forward to Google Sheets Webhook in background
+                  const webhookUrl =
+                    'https://script.google.com/macros/s/AKfycbx6yaYtK3NLWBINYkUiQ6jWINDfu9aJVpBAmDGnE8SDMBVrsv3N4K0P9aqLxxSKdKI/exec';
+                  if (payload.syncToWebhook) {
+                    try {
+                      fetch(webhookUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify(payload.syncToWebhook),
+                      }).catch(() => {});
+                    } catch {}
+                  }
+                } catch (err: unknown) {
+                  res.statusCode = 500;
+                  const errMsg = err instanceof Error ? err.message : String(err);
+                  res.end(JSON.stringify({ success: false, message: errMsg }));
+                }
+              });
+              return;
+            }
+
+            res.statusCode = 405;
+            res.end(JSON.stringify({ success: false, message: 'Method Not Allowed' }));
+          });
+
+          // 2. Google Sheet Webhook Proxy (/api/sync-sheet)
           server.middlewares.use('/api/sync-sheet', async (req, res) => {
             if (req.method !== 'POST') {
               res.statusCode = 405;

@@ -19,3 +19,30 @@
 .animate-marquee:hover {
   animation-play-state: paused;
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #print-document,
+  #print-document * {
+    visibility: visible;
+  }
+  #print-document {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  @page {
+    size: A4 portrait;
+    margin: 1.2cm 1cm;
+  }
+}

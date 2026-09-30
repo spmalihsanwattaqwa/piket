@@ -20,6 +20,8 @@ import {
   User,
   CheckCircle2,
   Sparkles,
+  KeyRound,
+  ShieldCheck,
 } from 'lucide-react';
 import { playKeyClickSound } from '../utils/audio';
 
@@ -36,6 +38,10 @@ interface LainLainModalProps {
   onAddPiketDuty: (duty: Omit<PiketDutyRecord, 'id' | 'createdAt'>) => void;
   onDeletePiketDuty: (id: string) => void;
   isLightMode?: boolean;
+  adminPassword?: string;
+  onChangeAdminPassword?: (newPass: string) => Promise<boolean> | boolean;
+  userRole?: 'admin' | 'user' | null;
+  isMobileDevice?: boolean;
 }
 
 export const LainLainModal: React.FC<LainLainModalProps> = ({
@@ -51,11 +57,15 @@ export const LainLainModal: React.FC<LainLainModalProps> = ({
   onAddPiketDuty,
   onDeletePiketDuty,
   isLightMode = false,
+  adminPassword = 'adminalwa',
+  onChangeAdminPassword,
+  userRole = 'user',
+  isMobileDevice = false,
 }) => {
   if (!isOpen) return null;
 
-  // Active tab: 'badil' | 'kunci' | 'piket'
-  const [activeTab, setActiveTab] = useState<'badil' | 'kunci' | 'piket'>('badil');
+  // Active tab: 'badil' | 'kunci' | 'piket' | 'keamanan'
+  const [activeTab, setActiveTab] = useState<'badil' | 'kunci' | 'piket' | 'keamanan'>('badil');
 
   // Form state for Badil / Guru Tambahan
   const [teacher, setTeacher] = useState('');
@@ -79,6 +89,51 @@ export const LainLainModal: React.FC<LainLainModalProps> = ({
   const [piketDay, setPiketDay] = useState<DayOfWeek | 'SEMUA'>(dayName || 'SENIN');
   const [piketNote, setPiketNote] = useState('');
   const [piketSuccessMessage, setPiketSuccessMessage] = useState<string | null>(null);
+
+  // Form state for Ubah Sandi Admin
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError('');
+    setPasswordSuccess('');
+
+    const currentPass = adminPassword || 'adminalwa';
+    if (oldPassword !== currentPass) {
+      setPasswordError('Sandi saat ini (lama) tidak sesuai!');
+      return;
+    }
+
+    if (newPassword.trim().length < 4) {
+      setPasswordError('Sandi baru minimal 4 karakter!');
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError('Konfirmasi sandi baru tidak cocok!');
+      return;
+    }
+
+    if (onChangeAdminPassword) {
+      setIsSavingPassword(true);
+      try {
+        await onChangeAdminPassword(newPassword.trim());
+        setPasswordSuccess('Sandi Admin berhasil diperbarui dan disinkronkan ke Spreadsheet!');
+        setOldPassword('');
+        setNewPassword('');
+        setConfirmNewPassword('');
+      } catch {
+        setPasswordError('Gagal menyimpan sandi.');
+      } finally {
+        setIsSavingPassword(false);
+      }
+    }
+  };
 
   // Handle submit Badil / Tugas Tambahan
   const handleBadilSubmit = (e: React.FormEvent) => {
@@ -239,6 +294,21 @@ export const LainLainModal: React.FC<LainLainModalProps> = ({
               </span>
             )}
           </button>
+
+          {!isMobileDevice && userRole === 'admin' && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('keamanan')}
+              className={`flex-1 py-3 px-3 flex items-center justify-center gap-1.5 border-b-2 whitespace-nowrap transition-all ${
+                activeTab === 'keamanan'
+                  ? 'border-orange-500 text-orange-500 bg-orange-500/10'
+                  : 'border-transparent text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <KeyRound className="w-4 h-4" />
+              <span>Sandi Admin</span>
+            </button>
+          )}
         </div>
 
         {/* ========================================================= */}
@@ -806,6 +876,118 @@ export const LainLainModal: React.FC<LainLainModalProps> = ({
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 4: PENGATURAN SANDI ADMINISTRATOR                     */}
+        {/* ========================================================= */}
+        {activeTab === 'keamanan' && (
+          <div className="p-4 space-y-4 overflow-y-auto max-h-[75vh] text-xs">
+            <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-2.5">
+              <ShieldCheck className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-bold text-amber-400 text-xs">
+                  Keamanan & Akses Administrator
+                </h4>
+                <p className="text-[11px] text-slate-300 mt-0.5">
+                  Petugas Piket harian dapat langsung absen tanpa kata sandi. Sandi ini khusus digunakan untuk beralih ke peran <strong>Administrator</strong> (kunci jam KBM & sinkronisasi).
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handlePasswordSubmit} className="space-y-3.5">
+              {/* Feedback messages */}
+              {passwordError && (
+                <div className="p-3 rounded-xl bg-rose-950/70 border border-rose-800 text-rose-200 text-xs flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-rose-400 flex-shrink-0" />
+                  <span>{passwordError}</span>
+                </div>
+              )}
+
+              {passwordSuccess && (
+                <div className="p-3 rounded-xl bg-emerald-950/70 border border-emerald-800 text-emerald-200 text-xs flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <span>{passwordSuccess}</span>
+                </div>
+              )}
+
+              {/* Sandi Lama */}
+              <div>
+                <label className="block font-semibold mb-1 text-slate-300">
+                  Sandi Saat Ini (Lama):
+                </label>
+                <input
+                  type="password"
+                  value={oldPassword}
+                  onChange={(e) => setOldPassword(e.target.value)}
+                  placeholder="Masukkan sandi admin saat ini (default: adminalwa)"
+                  required
+                  className={`w-full px-3 py-2 rounded-xl border text-xs focus:outline-none focus:border-orange-500 ${
+                    isLightMode ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-700 text-white'
+                  }`}
+                />
+              </div>
+
+              {/* Sandi Baru */}
+              <div>
+                <label className="block font-semibold mb-1 text-slate-300">
+                  Sandi Admin Baru:
+                </label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Minimal 4 karakter"
+                  required
+                  className={`w-full px-3 py-2 rounded-xl border text-xs focus:outline-none focus:border-orange-500 ${
+                    isLightMode ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-700 text-white'
+                  }`}
+                />
+              </div>
+
+              {/* Konfirmasi Sandi Baru */}
+              <div>
+                <label className="block font-semibold mb-1 text-slate-300">
+                  Konfirmasi Sandi Baru:
+                </label>
+                <input
+                  type="password"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  placeholder="Ketik ulang sandi admin baru"
+                  required
+                  className={`w-full px-3 py-2 rounded-xl border text-xs focus:outline-none focus:border-orange-500 ${
+                    isLightMode ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-700 text-white'
+                  }`}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSavingPassword}
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 active:translate-y-0.5 text-white font-bold text-xs border-b-2 border-orange-900 shadow-md flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"
+              >
+                {isSavingPassword ? (
+                  <span>Menyimpan ke Spreadsheet...</span>
+                ) : (
+                  <>
+                    <Save className="w-3.5 h-3.5" />
+                    <span>Simpan & Sinkronkan Sandi Admin</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-400 space-y-1">
+              <div className="font-semibold text-slate-300 flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>Otomatis Tersimpan ke Spreadsheet</span>
+              </div>
+              <p>
+                Setiap kali sandi admin diubah, perubahan langsung disinkronkan ke Spreadsheet Google Apps Script sehingga semua perangkat/HP piket mengenali sandi baru tersebut.
+              </p>
             </div>
           </div>
         )}

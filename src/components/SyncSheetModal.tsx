@@ -3,6 +3,7 @@ import { AttendanceRecord, PeriodConfig } from '../types/schedule';
 import { GOOGLE_SHEET_INFO } from '../data/scheduleData';
 import {
   APPS_SCRIPT_TEMPLATE,
+  DEFAULT_WEBHOOK_URL,
   generateCSVContent,
   generateTsvForClipboard,
   syncToGoogleSheetWebhook,
@@ -41,7 +42,7 @@ export const SyncSheetModal: React.FC<SyncSheetModalProps> = ({
   const [copiedCode, setCopiedCode] = useState(false);
   const [showCode, setShowCode] = useState(false);
   const [webhookUrl, setWebhookUrl] = useState(() => {
-    return localStorage.getItem('piket_sheet_webhook_url') || '';
+    return localStorage.getItem('piket_sheet_webhook_url') || DEFAULT_WEBHOOK_URL;
   });
   const [syncStatus, setSyncStatus] = useState<{
     loading: boolean;

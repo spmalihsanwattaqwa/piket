@@ -1,4 +1,4 @@
-import { DayOfWeek, PeriodConfig, ScheduleItem } from '../types/schedule';
+import { DayOfWeek, PeriodConfig, ScheduleItem, BellSchedulePreset, BellSettingsConfig } from '../types/schedule';
 
 export const DEFAULT_PERIODS: PeriodConfig[] = [
   { period: 1, name: 'Jam Ke-1', startTime: '07:15', endTime: '08:00' },
@@ -10,10 +10,55 @@ export const DEFAULT_PERIODS: PeriodConfig[] = [
   { period: 6, name: 'Jam Ke-6', startTime: '11:30', endTime: '12:15' },
 ];
 
+export const FRIDAY_PERIODS: PeriodConfig[] = [
+  { period: 1, name: 'Jam Ke-1', startTime: '07:15', endTime: '07:55' },
+  { period: 2, name: 'Jam Ke-2', startTime: '07:55', endTime: '08:35' },
+  { period: 3, name: 'Jam Ke-3', startTime: '08:35', endTime: '09:15' },
+  { period: 0, name: 'Istirahat', startTime: '09:15', endTime: '09:45', isBreak: true },
+  { period: 4, name: 'Jam Ke-4', startTime: '09:45', endTime: '10:25' },
+  { period: 5, name: 'Jam Ke-5', startTime: '10:25', endTime: '11:05' },
+];
+
+export const EXAM_PERIODS: PeriodConfig[] = [
+  { period: 1, name: 'Sesi Ujian 1', startTime: '07:30', endTime: '09:00' },
+  { period: 0, name: 'Istirahat Ujian', startTime: '09:00', endTime: '09:30', isBreak: true },
+  { period: 2, name: 'Sesi Ujian 2', startTime: '09:30', endTime: '11:00' },
+  { period: 0, name: 'Istirahat & Sholat', startTime: '11:00', endTime: '11:30', isBreak: true },
+  { period: 3, name: 'Sesi Ujian 3', startTime: '11:30', endTime: '12:30' },
+];
+
+export const DEFAULT_BELL_PRESETS: Record<string, BellSchedulePreset> = {
+  reguler: {
+    id: 'reguler',
+    name: 'Jadwal Reguler (Senin - Kamis & Sabtu)',
+    description: 'Jadwal standar 6 jam KBM + 1 sesi istirahat',
+    periods: DEFAULT_PERIODS,
+  },
+  jumat: {
+    id: 'jumat',
+    name: 'Jadwal Khusus Hari Jumat',
+    description: 'Durasi jam dipadatkan menjelang Sholat Jumat (5 Jam)',
+    periods: FRIDAY_PERIODS,
+  },
+  ujian: {
+    id: 'ujian',
+    name: 'Jadwal Khusus Ujian (PAS / PAT / STS)',
+    description: 'Format sesi ujian 90 menit & istirahat khusus ujian',
+    periods: EXAM_PERIODS,
+  },
+};
+
+export const DEFAULT_BELL_CONFIG: BellSettingsConfig = {
+  activePresetId: 'auto',
+  autoFridaySwitch: true,
+  presets: DEFAULT_BELL_PRESETS,
+};
+
 export const GOOGLE_SHEET_INFO = {
   spreadsheetId: '1OX7c6xkXt3j5eJNeAAyWou7xAdXKSjVCs_YaPtrWGCA',
   sheetName: 'piket',
   url: 'https://docs.google.com/spreadsheets/d/1OX7c6xkXt3j5eJNeAAyWou7xAdXKSjVCs_YaPtrWGCA/edit#gid=0',
+  defaultWebhookUrl: 'https://script.google.com/macros/s/AKfycbx6yaYtK3NLWBINYkUiQ6jWINDfu9aJVpBAmDGnE8SDMBVrsv3N4K0P9aqLxxSKdKI/exec',
 };
 
 // All schedule items accurately parsed from SPM AL IHSAN WAT TAQWA Timetable
