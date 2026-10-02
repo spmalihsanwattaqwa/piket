@@ -1,0 +1,8 @@
+node_modules
+dist
+dev-dist
+.git
+.base44
+data/piket_store.json
+docker-compose.base44.yml
+.env.base44-defaults
