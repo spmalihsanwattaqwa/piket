@@ -12,6 +12,8 @@ import {
 import {
   FULL_SCHEDULE,
   DEFAULT_PERIODS,
+  FRIDAY_PERIODS,
+  EXAM_PERIODS,
   GOOGLE_SHEET_INFO,
   getDayNameFromDate,
   getClassRank,
@@ -540,6 +542,33 @@ export default function App() {
     return getDayNameFromDate(selectedDate);
   }, [selectedDate]);
 
+  // Compute effective periods based on active bell preset and current day.
+  // This ensures the "jam pelajaran" dropdown and all displays follow the bell settings.
+  const effectivePeriods = useMemo(() => {
+    const isFriday = currentDay === 'JUMAT';
+    if (bellConfig.activePresetId === 'ujian') {
+      return bellConfig.presets?.ujian?.periods || EXAM_PERIODS;
+    }
+    if (bellConfig.activePresetId === 'jumat') {
+      return bellConfig.presets?.jumat?.periods || FRIDAY_PERIODS;
+    }
+    if (bellConfig.activePresetId === 'reguler') {
+      return bellConfig.presets?.reguler?.periods || periods;
+    }
+    // Auto mode: switch to jumat schedule on Fridays if autoFridaySwitch is enabled
+    if (bellConfig.autoFridaySwitch && isFriday) {
+      return bellConfig.presets?.jumat?.periods || FRIDAY_PERIODS;
+    }
+    return bellConfig.presets?.reguler?.periods || periods;
+  }, [bellConfig, currentDay, periods]);
+
+  // Dynamic label for the "Semua Jam" dropdown option based on effective periods
+  const allPeriodsLabel = useMemo(() => {
+    const nums = effectivePeriods.filter((p) => !p.isBreak).map((p) => p.period).sort((a, b) => a - b);
+    if (nums.length === 0) return 'Semua Jam';
+    return `Semua Jam (${nums[0]} - ${nums[nums.length - 1]})`;
+  }, [effectivePeriods]);
+
   // Guru Piket di Jam Aktif yang tampil di layar berdasarkan HARI KBM
   const activePiketTeachers = useMemo(() => {
     const nowHM = currentTime.slice(0, 5); // "08:15"
@@ -648,9 +677,9 @@ export default function App() {
 
   // Periods to display based on periodFilter
   const periodsToRender = useMemo(() => {
-    if (periodFilter === 'all') return periods;
-    return periods.filter((p) => p.period === periodFilter);
-  }, [periods, periodFilter]);
+    if (periodFilter === 'all') return effectivePeriods;
+    return effectivePeriods.filter((p) => p.period === periodFilter);
+  }, [effectivePeriods, periodFilter]);
 
   // Overall Statistics for selected date
   const stats = useMemo(() => {
@@ -678,13 +707,13 @@ export default function App() {
       setCurrentTime(timeStr);
 
       // Check current active period reliably
-      const active = periods.find((p) => {
+      const active = effectivePeriods.find((p) => {
         return isTimeInPeriod(hmStr, p.startTime, p.endTime);
       });
       setCurrentPeriodNumber(active ? active.period : null);
 
       // Automated period notification trigger:
-      const startingPeriod = periods.find((p) => !p.isBreak && p.startTime === hmStr);
+      const startingPeriod = effectivePeriods.find((p) => !p.isBreak && p.startTime === hmStr);
       if (startingPeriod) {
         const notificationKey = `${selectedDate}_p${startingPeriod.period}_${startingPeriod.startTime}`;
         if (lastNotifiedPeriodRef.current !== notificationKey) {
@@ -705,7 +734,7 @@ export default function App() {
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
-  }, [periods, selectedDate, daySchedule, recordsMap, soundEnabled, notificationsEnabled]);
+  }, [effectivePeriods, selectedDate, daySchedule, recordsMap, soundEnabled, notificationsEnabled]);
 
   // Handle Login with HP / Mobile Role Lockdown
   const handleLoginSubmit = (e?: React.FormEvent) => {
@@ -768,7 +797,7 @@ export default function App() {
 
   // Handle click on locked card (outside teaching hours)
   const handleLockedClick = (item: ScheduleItem) => {
-    const pConf = periods.find((p) => p.period === item.period);
+    const pConf = effectivePeriods.find((p) => p.period === item.period);
     const timeText = pConf ? `(${pConf.startTime} - ${pConf.endTime})` : '';
     setLockWarningToast(
       `⚠️ Jam Ke-${item.period} ${timeText} belum berlangsung. Absen wajib diisi saat jam mengajar.`
@@ -1839,8 +1868,8 @@ export default function App() {
                 }`}
                 title="Pilih Jam Pelajaran"
               >
-                <option value="all">Semua Jam (1 - 6)</option>
-                {periods
+                <option value="all">{allPeriodsLabel}</option>
+                {effectivePeriods
                   .filter((p) => !p.isBreak)
                   .map((p) => (
                     <option key={p.period} value={p.period}>
@@ -2259,7 +2288,7 @@ export default function App() {
           isOpen={isSyncSheetOpen}
           onClose={() => setIsSyncSheetOpen(false)}
           records={allDayRecordsList}
-          periods={periods}
+          periods={effectivePeriods}
           dateStr={selectedDate}
         />
       )}
@@ -2313,7 +2342,7 @@ export default function App() {
         isOpen={isPdfExportOpen}
         onClose={() => setIsPdfExportOpen(false)}
         defaultDate={selectedDate}
-        periods={periods}
+        periods={effectivePeriods}
         isLightMode={isLightMode}
       />
 
